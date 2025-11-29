@@ -1,71 +1,122 @@
 #include <stdio.h>
+#include <string.h>
 
-/* ham chuyen so n (he 10) sang he c, luu vao chuoi kq */
-void doi_co_so(int n, int c, char kq[]) {
-    char bang[36] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    int i;
-    int du;
-    int so_luong;
+/* kiem tra chuoi chi gom chu so (khong nhan 2.0, khong nhan chu cai) */
+int chuoi_chi_so(const char *s)
+{
+    int i = 0;
 
-    /* xu ly truong hop n = 0 */
-    if (n == 0) {
-        kq[0] = '0';
-        kq[1] = '\0';
+    if (s[0] == '\0')
+        return 0; // chuoi rong => sai
+
+    while (s[i] != '\0')
+    {
+        if (s[i] < '0' || s[i] > '9')
+            return 0; // gap chu cai hay ky tu => sai
+        i++;
+    }
+    return 1;
+}
+unsigned long long nhap_so_double(const char *ten)
+{
+    char buf[256];
+    double d;
+    unsigned long long kq;
+
+    while (1)
+    {
+        printf("Nhap %s: ", ten);
+
+        if (fgets(buf, sizeof(buf), stdin) == NULL)
+        {
+            printf("Loi doc du lieu. Nhap lai.\n");
+            clearerr(stdin);
+            continue;
+        }
+
+        /* xoa newline */
+        size_t len = strlen(buf);
+        if (len > 0 && buf[len - 1] == '\n')
+            buf[len - 1] = '\0';
+
+        /* kiem tra chu so */
+        if (!chuoi_chi_so(buf))
+        {
+            printf("Gia tri khong hop le, chi duoc nhap chu so 0-9. Nhap lai.\n");
+            continue;
+        }
+
+        /* chuyen sang double */
+        if (sscanf(buf, "%lf", &d) != 1)
+        {
+            printf("Gia tri khong hop le. Nhap lai.\n");
+            continue;
+        }
+
+        if (d <= 0)
+        {
+            printf("Phai > 0. Nhap lai.\n");
+            continue;
+        }
+
+        /* chap nhan tran */
+        kq = (unsigned long long)d;
+        return kq;
+    }
+}
+
+void doi_co_so(unsigned long long n, unsigned long long c)
+{
+    char kq[200];
+    int i = 0;
+    unsigned long long du;
+
+    if (n == 0)
+    {
+        printf("Ket qua: 0\n");
         return;
     }
 
-    so_luong = 0;
-
-    /* lay tung chu so he c */
-    while (n > 0) {
+    while (n > 0)
+    {
         du = n % c;
-        kq[so_luong] = bang[du];
-        so_luong = so_luong + 1;
-        n = n / c;
+        if (du < 10)
+            kq[i] = (char)(du + '0');
+        else
+            kq[i] = (char)(du - 10 + 'A');
+        n /= c;
+        i++;
     }
 
-    /* ket thuc chuoi */
-    kq[so_luong] = '\0';
-
-    /* dao nguoc chuoi ket qua */
-    for (i = 0; i < so_luong / 2; i++) {
-        char tmp;
-        tmp = kq[i];
-        kq[i] = kq[so_luong - 1 - i];
-        kq[so_luong - 1 - i] = tmp;
+    printf("Ket qua: ");
+    while (i > 0)
+    {
+        i--;
+        putchar(kq[i]);
     }
+    putchar('\n');
 }
 
-int main() {
-    int n;
-    int c;
-    char ket_qua[50];
+int main()
+{
+    unsigned long long n;
+    unsigned long long c;
 
-    printf("Nhap so nguyen he 10: ");
-    scanf("%d", &n);
+    n = nhap_so_double("n (he thap phan)");
+    c = nhap_so_double("co so c (2 - 36)");
 
-    printf("Nhap co so c (2..36): ");
-    scanf("%d", &c);
-
-    if (c < 2 || c > 36) {
-        printf("Co so khong hop le\n");
-        return 0;
+    while (c < 2 || c > 36)
+    {
+        printf("Co so phai tu 2 den 36. Nhap lai.\n");
+        c = nhap_so_double("co so c (2 - 36)");
     }
 
-    doi_co_so(n, c, ket_qua);
-
-    printf("Ket qua doi sang he %d: %s\n", c, ket_qua);
-
+    doi_co_so(n, c);
     return 0;
 }
+
 /*
-Nhap vao:
-- Mot so nguyen n o he thap phan
-- Mot co so c (2 ≤ c ≤ 36)
-Sau do doi n sang he c va in ra ket qua.
-- Dung mang ky tu de luu cac chu so sau khi doi co so
-- Lay phan du r = n % c, anh xa:
-    0–9  → '0'–'9'
-    10–35 → 'A'–'Z'
-- Dao chuoi lai de ra ket qua
+Ghi chu:
+- Them kiem tra chu so, neu nhap chu cai => bao loi ngay.
+- Khong nhan cac ky tu nhu '-', '+', '.', 'a'...
 */
